@@ -3,11 +3,11 @@ KISS (Keep It Simple Stupid) is a byte-oriented framing protocol commonly used i
 A KISS decoder converts an incoming framed byte stream into raw payload data.
 
 The KISS decoder receives an 8-bit input data stream along with a valid signal. 
- Consider the raw payload size as 256 bytes 
- Detect the start and end of a frame 
- Decode escaped special characters 
- Output only the raw payload bytes 
- Indicate the start and end of each decoded frame using pulse signals 
+1. Consider the raw payload size as 256 bytes 
+2. Detect the start and end of a frame 
+3. Decode escaped special characters 
+4. Output only the raw payload bytes 
+5. Indicate the start and end of each decoded frame using pulse signals 
 The entire design is fully synchronous to a single system clock. 
 
 Protocol Rules: 
