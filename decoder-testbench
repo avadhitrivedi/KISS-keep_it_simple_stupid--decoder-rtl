@@ -1,0 +1,100 @@
+module tb;
+  reg clk;
+  reg rst;
+  reg[7:0] rx_data;
+  reg rx_valid;
+  wire[7:0] data_out;
+  wire data_valid;
+  wire start_frame;
+  wire end_frame;
+  
+  int i;
+  int x;
+  
+  decoder dut(.clk(clk),
+              .rst(rst),
+              .rx_data(rx_data),
+              .rx_valid(rx_valid),
+              .data_out(data_out),
+              .data_valid(data_valid),
+              .start_frame(start_frame),
+              .end_frame(end_frame));
+  
+  initial begin
+    $monitor("time =%t, i=%d , rx_valid =%d , rx_data =%h, start_frame =%d, data_out =%h, data_valid =%d, end_frame   =%d ",$time,i,rx_valid,rx_data,start_frame,data_out,data_valid,end_frame);
+    clk=0;
+    i=0;
+    x=0;
+    $dumpfile("dump.vcd");
+    $dumpvars; 
+    rst=1;
+    rx_data=8'b0;
+    rx_valid=0;
+    #10;
+    rst=0;
+    #5000;                       
+    $finish;
+  end
+  
+  always #5 clk=~clk;
+                                
+  always @(posedge clk)begin
+    if(rst)begin
+      i<=0;
+      x<=0;
+    end
+    else begin
+      
+      if(i==5)begin
+        rx_valid<=1;
+        rx_data<=8'hC0;
+      end
+      
+      else if(i==34)begin 
+        rx_valid<=1;
+        rx_data<=8'hDB;
+      end
+      
+      else if(i==35)begin
+        rx_valid<=1;
+        rx_data<=8'hDD;
+      end
+      
+      else if(i==36)begin
+        rx_valid<=0;
+      end
+      
+      else if(i==37)begin
+        rx_valid<=1;
+        rx_data<=8'hDB;
+      end
+      
+      else if(i==38)begin
+        rx_valid<=1;
+        rx_data<=8'hDC;
+      end
+      
+      else if(i==100)begin
+        rx_valid<=1;
+        rx_data<=8'hFF;
+      end
+      
+      else if(i==270)begin
+          rx_valid<=1;
+          rx_data<=8'hC0;
+      end
+      
+      else begin
+        rx_valid<=1;
+        x=8'h00+i;
+        if(x!=8'hC0)
+         rx_data<=x;
+        else
+         rx_data<=x+1;
+      end
+      
+      i<=i+1;
+    end
+    end
+  
+endmodule
