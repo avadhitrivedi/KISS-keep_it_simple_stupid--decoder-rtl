@@ -1,0 +1,101 @@
+module decoder(input clk,
+               input rst,
+               input[7:0] rx_data,
+               input rx_valid,
+               output reg[7:0] data_out,
+               output reg data_valid,
+               output reg start_frame,
+               output reg end_frame);
+  
+  parameter IDLE=2'b00,
+            FRAME=2'b01,
+            s1=2'b01,
+            s3=2'b10;
+  
+  reg[2:0] state;
+  reg[8:0] cnt;
+  
+  always @(posedge clk)begin
+    if(rst)begin
+      state<=IDLE;
+      data_out<=0;
+      data_valid<=0;
+      start_frame<=0;
+      end_frame<=0;
+      cnt<=0;
+    end
+    
+    else begin
+      data_valid<=0;
+      start_frame<=0;
+      end_frame<=0;
+
+      case(state)
+        IDLE:begin
+          cnt<=0;
+          if(rx_valid)begin
+            if(rx_data==8'hC0)begin
+              state<=FRAME;
+              start_frame<=1;
+            end
+          end
+        end
+        
+        FRAME:begin
+          if(rx_valid)begin
+            if(rx_data==8'hDB)begin
+              state<=s1;
+            end
+            else if (rx_data==8'hC0)begin
+              end_frame<=1;
+              state<=IDLE;
+            end
+            else if(cnt<256) begin
+              data_out<=rx_data;
+              data_valid<=1;
+              cnt<=cnt+1;
+              state<= FRAME; 
+              if (cnt == 255)
+                state <= s3;
+            end
+          end 
+        end
+
+        s1:begin
+          if(rx_valid)begin
+            if(cnt<256)begin
+              if(rx_data==8'hDC)begin
+              data_out<=8'hC0;
+              data_valid<=1;
+              cnt<=cnt+1;
+            end
+              else if(rx_data==8'hDD)begin
+              data_out<=8'hDB;
+              data_valid<=1;
+              cnt<=cnt+1;
+            end
+            if (cnt == 255)
+                state <= s3;
+              else
+                state <= FRAME;
+          end
+            else begin
+              state<=s3;
+            end
+          end            
+        end
+        
+        s3:begin
+          if(rx_valid)begin
+            if(rx_data==8'hC0)begin
+              state<=IDLE;
+              end_frame<=1;
+            end
+          end
+        end
+        
+      endcase
+    end
+  end
+  
+endmodule
